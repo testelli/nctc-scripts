@@ -1,0 +1,191 @@
+
+phantom.casperTest = true;
+var casper = require('casper').create();
+var x = require('casper').selectXPath;
+
+var NewUser = false;
+var RequestDoc = false;
+var MSR = true;
+
+var user = "gelliott@ngdcorp.com"; 
+var password = "test321";
+
+casper.options.viewportSize = {width: 1600, height: 950};
+
+/*-------------------------------------------------------------------------------------*/
+	//START  
+
+	casper.echo('NCTC TEST SCRIPT: Create Users, Request Document, MSR', 'COMMENT');
+
+	   		// Home page
+	   		casper.start('http://nctc.uat-env.com/');
+
+	   		// Check HTTP status
+	   		casper.then(function () {
+	   			var hsc = this.status(false);
+	   			casper.test.assert(hsc.currentHTTPStatus === 200, "Http Status Code: " + hsc.currentHTTPStatus);
+	   		});
+
+	   		casper.then(function() {
+	   			this.test.assertTitle("NCTC - Home", "Main Page loaded, signing in...");
+	   			casper.capture("scriptshots/NCTC_Home.png");
+	   		});
+
+			//Login:      
+			casper.then(function() {
+				this.sendKeys('#modlgn-username', user);
+				this.sendKeys('#modlgn-passwd', password);
+				casper.capture("scriptshots/NCTC_Login.png");
+				casper.thenClick('input.button');
+			});
+			//Check for admin button (successful login)
+			casper.then(function() {
+				this.test.assertExists({
+					type: 'xpath',
+					path: '//*[@id="rt-top"]/div/div[2]/div/div/div/ul/li[2]/a'
+				}, "Login successful, Logged in as " + user);
+				
+			});
+
+			if(MSR == true){
+			//MSR
+			casper.then(function() {
+				//click programming
+				casper.thenClick(x('//*[@id="rt-header"]/div/div[2]/div/ul/li[1]/a/span')); 
+				casper.capture("scriptshots/NCTC_TEST.png"); 
+			
+				casper.then(function() {
+					//click MSR
+					casper.thenClick(x('//*[@id="rt-showcase"]/div/div[1]/div[2]/div/div/ul/li[3]/a/span'));  
+					casper.capture("scriptshots/NCTC_TEST2.png"); 
+
+					casper.wait(3000, function () {
+						//select a system
+						casper.capture("scriptshots/NCTC_TEST3.png");
+						casper.thenClick(x('//*[@id="msr-app"]/ng-view/div/div[2]/table/tbody/tr[1]/td[1]/span[1]'));  
+						
+						//Edit counts
+						casper.wait(3000, function() {
+							//basic
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[2]/input'), '100');
+							//expanded
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[3]/input'), '100');
+							//Dig. Homes
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[4]/input'), '100');
+							//Dig. Gateway
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[5]/input'), '100');
+							//HD Homes
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[6]/input'), '100');
+							//VOD
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[7]/input'), '100');
+							//Data Subs
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[8]/input'), '100');
+							//Bandwidth
+							this.sendKeys(x('//*[@id="msr-app"]/ng-view/div/div[2]/form/table/tbody/tr[3]/td[9]/input'), '100');
+							
+							//casper.thenClick('input.button');
+							casper.wait(5000, function () {
+								casper.capture("scriptshots/NCTC_TEST4.png");
+							});
+						});
+					});
+				});
+			});	
+
+
+			
+
+
+
+
+			} else { casper.echo('Skipping: MSR Testing', 'COMMENT')}			
+
+			if(NewUser == true){
+
+			//Click 'Administrator' button
+			casper.then(function() {
+				casper.thenClick(x('//*[@id="rt-top"]/div/div[2]/div/div/div/ul/li[2]/a'));  
+				
+			});
+
+			//Nav to 'Manage Users' page
+			casper.wait(500, function () {
+				casper.capture("scriptshots/NCTC_Admin.png");
+				casper.then(function() {
+					casper.thenClick(x('//*[@id="rt-mainbody"]/div/div[2]/div/div/a[1]/div/img'));  
+				});
+			});
+			casper.wait(500, function () {
+				casper.capture("scriptshots/NCTC_CurrentUsers.png");
+			});
+
+			//Add new user
+			casper.then(function() {
+				casper.thenClick(x('//*[@id="filter-bar"]/div[3]/a'));  
+				casper.wait(500, function () {
+					casper.capture("scriptshots/NCTC_NewUserBlank.png");
+					//Fill form
+					this.sendKeys('#jform_name', "Matt Castelli");
+					this.sendKeys('#jform_password', "Gizzmo13");
+					this.sendKeys('#jform_confpassword', "Gizzmo13");
+					this.sendKeys('#jform_email', "matt@ngdcorp.com");
+					this.sendKeys('#jform_address', "301 South State Street");
+					this.sendKeys('#jform_city', "Newtown");
+					this.sendKeys('#jform_state', "PA");
+					this.sendKeys('#jform_zip', "18940");
+					this.sendKeys('#jform_phone', "2155551234");					
+					//Radio button - approved / unlocked
+					this.click('#radio1');
+					this.click('#lockuser2'); 
+					casper.capture("scriptshots/NCTC_NewUserFill.png"); 
+					//Submit
+					casper.thenClick(x('//*[@id="signup-form"]/fieldset/div[22]/div/div/button'));
+					casper.wait(50000, function () {
+						casper.capture("scriptshots/NCTC_NewUserComplete.png"); 
+					});
+				});
+			});
+
+			//Confirm user is present in SugarCRM - issue: the headless browser is not supported
+
+		} else { casper.echo('Skipping: Create New User', 'COMMENT')}
+
+
+		//request a contract for download
+		if(RequestDoc == true){
+
+			casper.thenClick("a[href='/index.php/agreements']", function() {
+				casper.wait(3000, function() {
+					casper.thenClick(x('//*[@id="agreements"]/div/div[3]/span[14]/a'));
+					casper.wait(3000, function() {
+						casper.thenClick(x('//*[@id="agreements"]/div/div[4]/div[1]/div[1]/a'));
+						casper.wait(3000, function() {
+							casper.thenClick(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[1]/td[4]/a'));
+							casper.thenClick(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[2]/td[4]/a'));
+							casper.thenClick(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[3]/td[4]/a'));
+							casper.thenClick(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[4]/td[4]/a'));
+							casper.wait(5000, function() {
+								casper.capture("scriptshots/NCTC_Agreements.png"); 
+								casper.test.assertTextExists('You have already requested this document. ', 'Document Requested - Verify it has been recieved');
+							});
+						});	
+					});		
+				});	
+			});	
+			//Verfiy the 
+			casper.then(function() {	
+				
+				casper.test.assertExist(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[1]/td[4]/span', 'Cannot Request: NCTC G4 letter.pdf'))
+				casper.test.assertExist(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[2]/td[4]/span', 'Cannot Request: 012715_LaunchUpdate.pdf'))
+				casper.test.assertExist(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[3]/td[4]/span', 'Cannot Request: E! 2011 Agreement'))
+				casper.test.assertExist(x('//*[@id="agreements"]/div/div[5]/table/tbody/tr[4]/td[4]/span', 'Cannot Request: E! 1994 Agreement'))
+
+			});				
+
+		} else { casper.echo('Skipping: Request Contract', 'COMMENT')}
+
+
+
+
+
+		casper.run();
